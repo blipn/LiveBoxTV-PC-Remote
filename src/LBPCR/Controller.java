@@ -1,15 +1,61 @@
 package LBPCR;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 
-import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 
 public class Controller {
+
+    @FXML
+    private TextField fieldURL;
+    @FXML
+    private TextField fieldPORT;
+    @FXML
+    private TextField fieldTimeOut;
+
+    @FXML
+    public void initialize(){
+        fieldURL.setText("192.168.1.14");
+        fieldPORT.setText("8080");
+        fieldTimeOut.setText("1000");
+
+        setUrl(fieldURL.getText());
+        setPort(fieldPORT.getText());
+        setTimeOut(fieldTimeOut.getText());
+    }
+
+    private String port;
+    private String url;
+    private String timeOut;
+
+    public String getTimeOut() {
+        return timeOut;
+    }
+
+    public void setTimeOut(String timeOut) {
+        this.timeOut = timeOut;
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
     /**
      116 : ON/OFF
@@ -31,7 +77,7 @@ public class Controller {
      103 : UP
      108 : DOWN
      105 : LEFT
-     116 : RIGHT
+     106 : RIGHT
      352 : OK
      158 : BACK
      139 : MENU
@@ -41,62 +87,6 @@ public class Controller {
      167 : REC
      393 : VOD
      */
-    @FXML
-    private Button onOff;
-    @FXML
-    private Button t0;
-    @FXML
-    private Button t1;
-    @FXML
-    private Button t2;
-    @FXML
-    private Button t3;
-    @FXML
-    private Button t4;
-    @FXML
-    private Button t5;
-    @FXML
-    private Button t6;
-    @FXML
-    private Button t7;
-    @FXML
-    private Button t8;
-    @FXML
-    private Button t9;
-    @FXML
-    private Button chP;
-    @FXML
-    private Button chM;
-    @FXML
-    private Button volP;
-    @FXML
-    private Button volM;
-    @FXML
-    private Button mute;
-    @FXML
-    private Button up;
-    @FXML
-    private Button down;
-    @FXML
-    private Button left;
-    @FXML
-    private Button right;
-    @FXML
-    private Button ok;
-    @FXML
-    private Button back;
-    @FXML
-    private Button menu;
-    @FXML
-    private Button playPause;
-    @FXML
-    private Button backward;
-    @FXML
-    private Button forward;
-    @FXML
-    private Button rec;
-    @FXML
-    private Button vod;
 
     public void pushOnOff(){
         push("116");
@@ -156,7 +146,7 @@ public class Controller {
         push("105");
     }
     public void pushRight(){
-        push("116");
+        push("106");
     }
     public void pushOk(){
         push("352");
@@ -190,11 +180,11 @@ public class Controller {
      */
     private void push(String pushed){
         try {
-            String url = "http://192.168.1.10:8080/remoteControl/cmd?operation=01&key="+pushed+"&mode=0";
+            String url = "http://"+getUrl()+":"+getPort()+"/remoteControl/cmd?operation=01&key="+pushed+"&mode=0";
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("GET");
-            //con.setRequestProperty("User-Agent", USER_A);
+            con.setConnectTimeout(Integer.parseInt(getTimeOut()));
             int responseCode = con.getResponseCode();
             System.out.println("\nSending 'GET' request to URL : " + url);
             System.out.println("Response Code : " + responseCode);
@@ -213,8 +203,29 @@ public class Controller {
             //Print result
             System.out.println(response.toString());
 
+        }catch (SocketTimeoutException ste){
+            System.out.println("Erreur: Impossible de se connecter à "+getUrl()+":"+getPort()+" Vérifiez votre configuration.");
         }catch (Exception e){
             System.out.println("push error : "+e);
         }
     }
+
+    /**
+     * Save the current config
+     */
+    public void saveSettings(){ //TODO: Ajouter sauvegarde de la conf sous forme de fichier
+        loadSettings();
+        System.out.println("Saved");
+    }
+
+    /**
+     * Load the current config
+     */
+    private void loadSettings(){
+        setUrl(fieldURL.getText());
+        setPort(fieldPORT.getText());
+        setTimeOut(fieldTimeOut.getText());
+    }
+
+
 }
