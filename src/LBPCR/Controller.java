@@ -1,5 +1,6 @@
 package LBPCR;
 
+import XMLTools.XMLTools;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 
@@ -18,43 +19,12 @@ public class Controller {
     @FXML
     private TextField fieldTimeOut;
 
+    Conf conf = new Conf("192.168.1.10", "8080", "1000");
+    private String fileName = "config.xml";
+
     @FXML
     public void initialize(){
-        fieldURL.setText("192.168.1.14");
-        fieldPORT.setText("8080");
-        fieldTimeOut.setText("1000");
-
-        setUrl(fieldURL.getText());
-        setPort(fieldPORT.getText());
-        setTimeOut(fieldTimeOut.getText());
-    }
-
-    private String port;
-    private String url;
-    private String timeOut;
-
-    public String getTimeOut() {
-        return timeOut;
-    }
-
-    public void setTimeOut(String timeOut) {
-        this.timeOut = timeOut;
-    }
-
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
+        loadSavedSettings();
     }
 
     /**
@@ -180,11 +150,11 @@ public class Controller {
      */
     private void push(String pushed){
         try {
-            String url = "http://"+getUrl()+":"+getPort()+"/remoteControl/cmd?operation=01&key="+pushed+"&mode=0";
+            String url = "http://"+conf.getUrl()+":"+conf.getPort()+"/remoteControl/cmd?operation=01&key="+pushed+"&mode=0";
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("GET");
-            con.setConnectTimeout(Integer.parseInt(getTimeOut()));
+            con.setConnectTimeout(Integer.parseInt(conf.getTimeOut()));
             int responseCode = con.getResponseCode();
             System.out.println("\nSending 'GET' request to URL : " + url);
             System.out.println("Response Code : " + responseCode);
@@ -204,7 +174,7 @@ public class Controller {
             System.out.println(response.toString());
 
         }catch (SocketTimeoutException ste){
-            System.out.println("Erreur: Impossible de se connecter à "+getUrl()+":"+getPort()+" Vérifiez votre configuration.");
+            System.out.println("Erreur: Impossible de se connecter à "+conf.getUrl()+":"+conf.getPort()+" Vérifiez votre configuration.");
         }catch (Exception e){
             System.out.println("push error : "+e);
         }
@@ -213,19 +183,38 @@ public class Controller {
     /**
      * Save the current config
      */
-    public void saveSettings(){ //TODO: Ajouter sauvegarde de la conf sous forme de fichier
+    public void saveSettings(){
         loadSettings();
-        System.out.println("Saved");
+        try {
+            XMLTools.encodeToFile(conf, fileName);
+            System.out.println("Saved");
+        } catch(Exception e) {
+            e.printStackTrace();
+            System.out.println("Cannot write the conf.xml file");
+        }
+    }
+
+    /**
+     *  Load saved settings or default
+     */
+    public void loadSavedSettings(){
+        try {
+            conf = (Conf) XMLTools.decodeFromFile(fileName);
+        } catch(Exception e) {
+            System.out.println("Cannot open the conf.xml file");
+        }
+        fieldURL.setText(conf.getUrl());
+        fieldPORT.setText(conf.getPort());
+        fieldTimeOut.setText(conf.getTimeOut());
     }
 
     /**
      * Load the current config
      */
     private void loadSettings(){
-        setUrl(fieldURL.getText());
-        setPort(fieldPORT.getText());
-        setTimeOut(fieldTimeOut.getText());
+        conf.setUrl(fieldURL.getText());
+        conf.setPort(fieldPORT.getText());
+        conf.setTimeOut(fieldTimeOut.getText());
     }
-
 
 }
