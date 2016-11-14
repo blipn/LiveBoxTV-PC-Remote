@@ -11,7 +11,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
         Parent root = FXMLLoader.load(getClass().getResource("Main-Window.fxml"));
-        primaryStage.setTitle("LiveBox PC Remote");
+        primaryStage.setTitle("LiveBoxTV PC Remote");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
     }
